@@ -55,7 +55,13 @@ process(clk, reset) begin
         end if;                
 end process;
 
-rs1 <= reg(to_integer(unsigned(rs1_addr)));
-rs2 <= reg(to_integer(unsigned(rs2_addr))); 
+--rs1 <= reg(to_integer(unsigned(rs1_addr)));
+--rs2 <= reg(to_integer(unsigned(rs2_addr))); 
+
+rs1 <= write when (reg_write = '1' and rd_addr = rs1_addr and rd_addr /= "00000")
+       else reg(to_integer(unsigned(rs1_addr)));
+
+rs2 <= write when (reg_write = '1' and rd_addr = rs2_addr and rd_addr /= "00000")
+       else reg(to_integer(unsigned(rs2_addr)));
 
 end Behavioral;
