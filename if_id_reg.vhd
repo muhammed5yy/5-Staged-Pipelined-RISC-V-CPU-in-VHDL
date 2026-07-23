@@ -34,10 +34,12 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity if_id_reg is
     Port( 
         current_inst            : in std_logic_vector(31 downto 0);
+        inst0                   : in std_logic_Vector(31 downto 0); 
         current_pc              : in std_logic_vector(31 downto 0);
         stall, clk, reset, flush: in std_logic;
         current_pc_out          : out std_logic_vector(31 downto 0);
-        current_inst_out        : out std_logic_vector(31 downto 0)        
+        inst0_out          : out std_logic_vector(31 downto 0);
+        current_inst_out        : out std_logic_vector(31 downto 0)       
 );
 end if_id_reg;
 
@@ -45,23 +47,26 @@ architecture Behavioral of if_id_reg is
 
 type reg is array (0 to 1) of std_logic_vector(31 downto 0);
 signal inst: reg := (others => (others => '1'));
-
+signal inst0_reg : std_logic_vector(31 downto 0) := (others => '0');
 begin
    WRITE_PROCESS: process(clk) begin
         if rising_edge(clk) then
             if reset = '1' then
-                inst(0) <= (others => '0');
-                inst(1) <= (others => '0');
+                inst(0)   <= (others => '0');
+                inst(1)   <= (others => '0');
+                inst0_reg <= (others => '0');
             else
                 if flush = '1' then
                 -- 2. ÖNCELİK: Flush (Stall olsa bile siler)
                  inst(0) <= (others => '0');
                  inst(1) <= (others => '0');
+                 inst0_reg <= (others => '0');
 
                 elsif stall = '0' then
                 -- 3. ÖNCELİK: Normal Çalışma (Stall yoksa yeni veriyi al)
                  inst(0)<= current_inst;
                  inst(1)<= current_pc;
+                 inst0_reg <= inst0;
                  end if;
                     
             end if;
@@ -70,6 +75,7 @@ begin
           
 current_inst_out <= inst(0);
 current_pc_out   <= inst(1);
+inst0_out        <= inst0;
        
             
    

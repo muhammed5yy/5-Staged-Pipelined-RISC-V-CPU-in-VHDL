@@ -37,12 +37,12 @@ entity ex_mem_reg is
          clk, reset                                         : in std_logic;
          mem_to_reg                                         : in std_logic_vector(1 downto 0);
          rd                                                 : in std_logic_vector(4 downto 0);
-         ALU_Result, rs2_for                                : in std_logic_vector(31 downto 0);
+         ALU_Result, rs2_for, imm, inst0                    : in std_logic_vector(31 downto 0);
          ----------------------------------------------------------------------------------------
          mem_write_mem, mem_read_mem, reg_write_mem         : out std_logic;
          mem_to_reg_mem                                     : out std_logic_vector(1 downto 0);
          rd_mem                                             : out std_logic_vector(4 downto 0);
-         ALU_Result_mem, rs2_for_mem                        : out std_logic_vector(31 downto 0)          
+         ALU_Result_mem, rs2_for_mem, imm_mem,inst0_mem     : out std_logic_vector(31 downto 0)          
    );
 end ex_mem_reg;
 
@@ -51,9 +51,11 @@ signal alu_register        : std_logic_vector(31 downto 0) := (others => '0');
 signal rs2_for_register    : std_logic_vector(31 downto 0) := (others => '0');
 signal rd_register         : std_logic_vector(4 downto 0)  := (others => '0');
 signal mem_to_reg_register : std_logic_Vector(1 downto 0) := (others => '0');
+signal imm_register        : std_logic_Vector(31 downto 0) := (others => '0');
 signal mem_write_reg       : std_logic := '0';
-signal mem_read_reg       : std_logic := '0';
+signal mem_read_reg        : std_logic := '0';
 signal reg_write_reg       : std_logic := '0';
+signal inst0_register      : std_logic_Vector(31 downto 0) := (others => '0');
 
 begin
 
@@ -67,6 +69,8 @@ WRITE:  process(clk) begin
                    mem_write_reg       <= '0'; 
                    mem_read_reg        <= '0'; 
                    reg_write_reg       <= '0'; 
+                   inst0_register      <= (others => '0'); 
+                   imm_register      <= (others => '0'); 
                  else 
                    alu_register        <= ALU_Result;
                    rs2_for_register    <= rs2_for;
@@ -74,7 +78,9 @@ WRITE:  process(clk) begin
                    mem_to_reg_register <= mem_to_reg;
                    mem_write_reg       <= mem_write_ex;
                    mem_read_reg        <= mem_read_ex;
-                   reg_write_reg       <= reg_write_ex;       
+                   reg_write_reg       <= reg_write_ex;
+                   inst0_register      <= inst0;
+                   imm_register        <= imm;       
                  end if;
             end if;
 end process;
@@ -86,5 +92,7 @@ mem_to_reg_mem <= mem_to_reg_register;
 mem_write_mem  <= mem_write_reg;
 mem_read_mem   <= mem_read_reg;
 reg_write_mem  <= reg_write_reg;
+imm_mem        <= imm_register;
+inst0_mem      <= inst0_register;
 
 end Behavioral;
