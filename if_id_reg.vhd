@@ -57,13 +57,13 @@ begin
                 inst0_reg <= (others => '0');
             else
                 if flush = '1' then
-                -- 2. ÖNCELİK: Flush (Stall olsa bile siler)
+                --PRIORITY
                  inst(0) <= (others => '0');
                  inst(1) <= (others => '0');
                  inst0_reg <= (others => '0');
 
                 elsif stall = '0' then
-                -- 3. ÖNCELİK: Normal Çalışma (Stall yoksa yeni veriyi al)
+                
                  inst(0)<= current_inst;
                  inst(1)<= current_pc;
                  inst0_reg <= inst0;
