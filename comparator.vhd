@@ -40,7 +40,7 @@ entity comparator is
 end comparator;
 
 architecture Behavioral of comparator is
-
+-- rs1 and rs2 ports must be linked up with muxA and muxB signals.
 begin
 
 process(rs1,rs2,funct3) begin

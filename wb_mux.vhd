@@ -58,6 +58,7 @@ begin
             when "01" => wb_out <= read_data;
             when "10" => wb_out <= inst0;
             when "11" => wb_out <= imm;
+            when others => wb_out <= (others => '0');
         end case;
     end process;
 end Behavioral;

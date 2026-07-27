@@ -45,7 +45,7 @@ entity ex_mem_reg is
          ALU_Result_mem, rs2_for_mem, imm_mem,inst0_mem     : out std_logic_vector(31 downto 0)          
    );
 end ex_mem_reg;
-
+-- rs2_for = muxB_2
 architecture Behavioral of ex_mem_reg is
 signal alu_register        : std_logic_vector(31 downto 0) := (others => '0');
 signal rs2_for_register    : std_logic_vector(31 downto 0) := (others => '0');
@@ -70,7 +70,7 @@ WRITE:  process(clk) begin
                    mem_read_reg        <= '0'; 
                    reg_write_reg       <= '0'; 
                    inst0_register      <= (others => '0'); 
-                   imm_register      <= (others => '0'); 
+                   imm_register        <= (others => '0'); 
                  else 
                    alu_register        <= ALU_Result;
                    rs2_for_register    <= rs2_for;

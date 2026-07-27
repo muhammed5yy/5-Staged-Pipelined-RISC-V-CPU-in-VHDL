@@ -80,8 +80,8 @@
                     mem_write <= '0';
                     mem_read  <= '0';
                     reg_write <= '1';
-                    ALU_Src   <= '1';
-                    ALU_Src2  <= '0';
+                    ALU_Src   <= '0';
+                    ALU_Src2  <= '1';
                     Jump      <= '0';
                     Branch    <= '0';
                     Adder_Src <= '0';
@@ -91,8 +91,8 @@
                     mem_write <= '0';
                     mem_read  <= '1';
                     reg_write <= '1';
-                    ALU_Src   <= '1';
-                    ALU_Src2  <= '0';
+                    ALU_Src   <= '0';
+                    ALU_Src2  <= '1';
                     Jump      <= '0';
                     Branch    <= '0';
                     Adder_Src <= '0';
@@ -102,8 +102,8 @@
                     mem_write <= '1';
                     mem_read  <= '0';
                     reg_write <= '0';
-                    ALU_Src   <= '1';
-                    ALU_Src2  <= '0';
+                    ALU_Src   <= '0';
+                    ALU_Src2  <= '1';
                     Jump      <= '0';
                     Branch    <= '0';
                     Adder_Src <= '0';
@@ -163,7 +163,18 @@
                     Branch    <= '0';
                     Adder_Src <= '1';
                     mem_to_reg<= "11";
-                    ALU_Op    <= "00";                
+                    ALU_Op    <= "00";
+                 when others =>
+                    mem_write <= '0'; 
+                    mem_read  <= '0'; 
+                    reg_write <= '0'; 
+                    ALU_Src   <= '0'; 
+                    ALU_Src2  <= '0'; 
+                    Jump      <= '0'; 
+                    Branch    <= '0'; 
+                    Adder_Src <= '0'; 
+                    mem_to_reg<= "00";
+                    ALU_Op    <= "00";             
             end Case;
         end process;
     end Behavioral;

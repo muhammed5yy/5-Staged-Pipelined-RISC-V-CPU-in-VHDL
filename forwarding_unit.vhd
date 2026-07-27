@@ -41,26 +41,39 @@ entity forwarding_unit is
 end forwarding_unit;
 
 architecture Behavioral of forwarding_unit is
-
 begin
     process(all) begin
-        --Forwarding A
-        if reg_write_mem = '1' and rd_mem /= "00000" and rd_mem = rs1_adr then
-            for_a <= "10"; --ALU_Result
-        elsif reg_write_wb = '1' and rd_wb /= "00000" and rd_wb = rs1_adr then
-            for_a <= "01"; -- read_data
+        -- =====================================================================
+        -- FORWARDING A (rs1_adr)
+        -- =====================================================================
+        -- 1. EX/MEM Hazard (En Yüksek Öncelik - MEM Aşaması)
+        if (reg_write_mem = '1') and (rd_mem /= "00000") and (rd_mem = rs1_adr) then
+            for_a <= "10"; -- EX/MEM aşamasındaki ALU sonucunu ilet
+
+        -- 2. MEM/WB Hazard (Sadece EX/MEM Hazard yoksa geçerli olmalı!)
+        elsif (reg_write_wb = '1') and (rd_wb /= "00000") and (rd_wb = rs1_adr) and 
+              not (reg_write_mem = '1' and rd_mem /= "00000" and rd_mem = rs1_adr) then
+            for_a <= "01"; -- MEM/WB aşamasındaki veriyi ilet
+
         else
-            for_a <= "00";
-        end if;             -- rs1
-            
-        --Forwarding B
-        if reg_write_mem = '1' and rd_mem /= "00000" and rd_mem = rs2_adr then
+            for_a <= "00"; -- Forwarding yok, doğrudan RegFile'dan oku
+        end if; 
+
+        -- =====================================================================
+        -- FORWARDING B (rs2_adr)
+        -- =====================================================================
+        -- 1. EX/MEM Hazard (En Yüksek Öncelik)
+        if (reg_write_mem = '1') and (rd_mem /= "00000") and (rd_mem = rs2_adr) then
             for_b <= "10";
-        elsif reg_write_wb = '1' and rd_wb /= "00000" and rd_wb = rs2_adr then
+
+        -- 2. MEM/WB Hazard
+        elsif (reg_write_wb = '1') and (rd_wb /= "00000") and (rd_wb = rs2_adr) and 
+              not (reg_write_mem = '1' and rd_mem /= "00000" and rd_mem = rs2_adr) then
             for_b <= "01";
+
         else
             for_b <= "00";
         end if; 
+
     end process;
-   
 end Behavioral;

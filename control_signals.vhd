@@ -41,14 +41,22 @@ entity control_signals is
          ALU_Src2               : in std_logic;
          mem_to_reg             : in std_logic_vector(1 downto 0);
          ALU_Op                 : in std_logic_vector(1 downto 0);
+         Jump                   : in std_logic;
+         Branch                 : in std_logic;
+         Adder_Src              : in std_logic;
+         
+         
          ---------------------------------------------------------
-         mem_write_and              : out std_logic;
-         mem_read_and               : out std_logic;
-         reg_write_and              : out std_logic;
-         ALU_Src_and                : out std_logic;
-         ALU_Src2_and               : out std_logic;
-         mem_to_reg_and             : out std_logic_vector(1 downto 0);
-         ALU_Op_and                 : out std_logic_vector(1 downto 0)
+         mem_write_and          : out std_logic;
+         mem_read_and           : out std_logic;
+         reg_write_and          : out std_logic;
+         ALU_Src_and            : out std_logic;
+         ALU_Src2_and           : out std_logic;
+         Jump_and               : out std_logic;
+         Branch_and             : out std_logic;
+         Adder_Src_and          : out std_logic;
+         mem_to_reg_and         : out std_logic_vector(1 downto 0);
+         ALU_Op_and             : out std_logic_vector(1 downto 0)
         
     );
 end control_signals;
@@ -60,6 +68,9 @@ begin
     mem_write_and  <= mem_write  when stall = '0' else '0';
     mem_read_and   <= mem_read   when stall = '0' else '0';
     reg_write_and  <= reg_write  when stall = '0' else '0';
+    Jump_and       <= Jump       when stall = '0' else '0';
+    Branch_and     <= Branch     when stall = '0' else '0';
+    Adder_Src_and  <= Adder_Src  when stall = '0' else '0';
     ALU_Src_and    <= ALU_Src    when stall = '0' else '0';
     ALU_Src2_and   <= ALU_Src2   when stall = '0' else '0';   
     mem_to_reg_and <= mem_to_reg when stall = '0' else "00";

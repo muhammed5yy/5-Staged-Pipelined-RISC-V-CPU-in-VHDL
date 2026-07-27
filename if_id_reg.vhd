@@ -75,7 +75,7 @@ begin
           
 current_inst_out <= inst(0);
 current_pc_out   <= inst(1);
-inst0_out        <= inst0;
+inst0_out        <= inst0_reg;
        
             
    

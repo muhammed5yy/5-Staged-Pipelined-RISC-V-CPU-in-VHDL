@@ -51,7 +51,9 @@ architecture Behavioral of top_risc_v is
     signal pc_mux_signal           : std_logic_vector(31 downto 0);  -- Output of PC_Mux
     signal new_target_signal       : std_logic_vector(31 downto 0);  -- Output of Target Adder
     signal stall_signal            : std_logic;                      -- Stall
-    signal Adder_Src_signal        : std_logic;                      -- Control Unit to Target Adder
+    signal Adder_Src_signal        : std_logic;                      -- Control Unit to Control Signals
+    signal Adder_Src_signal_and    : std_logic;                      -- Control Signals to ID/EX
+    signal Adder_Src_signal_2      : std_logic;                      -- Control Signals to ID/EX
     signal inst0_signal            : std_logic_vector(31 downto 0);  -- PC+4
     signal inst0_signal_2          : std_logic_vector(31 downto 0);  -- PC+4 in ID
     signal inst0_signal_3          : std_logic_vector(31 downto 0);  -- PC+4 in EX
@@ -66,9 +68,13 @@ architecture Behavioral of top_risc_v is
     signal mem_to_reg_2            : std_logic_vector(1 downto 0);  -- mem_to_reg in EX
     signal mem_to_reg_3            : std_logic_vector(1 downto 0);  -- mem_to_reg in MEM
     signal mem_to_reg_4            : std_logic_vector(1 downto 0);  -- mem_to_reg in WB
-    signal mem_to_reg_and            : std_logic_vector(1 downto 0);  -- mem_to_reg in WB
+    signal mem_to_reg_and          : std_logic_vector(1 downto 0);  -- mem_to_reg in WB
     signal jump_signal             : std_logic;                      -- Jump
+    signal jump_signal_and         : std_logic;                      -- Jump
+    signal jump_signal_2           : std_logic;                      -- Jump
     signal Branch_signal           : std_logic;                      -- Branch
+    signal Branch_signal_and       : std_logic;                      -- Branch
+    signal Branch_signal_2         : std_logic;                      -- Branch
     signal ALU_Src_signal          : std_logic;                      -- ALU_Src
     signal ALU_Src_signal_2        : std_logic;                      -- ALU_Src in EX
     signal ALU_Src_signal_and        : std_logic;                      -- ALU_Src with stall
@@ -95,7 +101,7 @@ architecture Behavioral of top_risc_v is
     signal rs2_signal              : std_logic_vector(31 downto 0);  -- Output of Register File
     signal rs1_signal_2            : std_logic_vector(31 downto 0);  -- Output of Register File in EX
     signal rs2_signal_2            : std_logic_vector(31 downto 0);  -- Output of Register File in EX
-    signal rs2_signal_3            : std_logic_vector(31 downto 0);  -- Output rs2 of Register File in MEM  
+--    signal rs2_signal_3            : std_logic_vector(31 downto 0);  -- Output rs2 of Register File in MEM  
     signal imm_signal              : std_logic_vector(31 downto 0);  -- Output of ImmGen
     signal imm_signal_2            : std_logic_vector(31 downto 0);  -- Output of ImmGen in EX
     signal imm_signal_3            : std_logic_vector(31 downto 0);  -- Output of ImmGen IN MEM
@@ -105,7 +111,8 @@ architecture Behavioral of top_risc_v is
     --------------------------------------------------------------------------------------------------------
     --------------------- MUX SİGNALS ----------------------------------------------------------------------
     signal muxA_signal              : std_logic_vector(31 downto 0);  -- Output of MUX A
-    signal MuxB_signal              : std_logic_vector(31 downto 0);  -- Output of MUX B
+    signal MuxB_signal              : std_logic_vector(31 downto 0);  -- Output of MUX B in EX
+    signal MuxB_signal_2            : std_logic_vector(31 downto 0);  -- Output of MUX B in MEM
     signal operand1_signal          : std_logic_vector(31 downto 0);  -- Output of Operand_mux
     signal operand2_signal          : std_logic_vector(31 downto 0);  -- Output of Operand_mux
     --------------------- MUX SİGNALS ----------------------------------------------------------------------
@@ -137,6 +144,7 @@ architecture Behavioral of top_risc_v is
     ---------------------------------------------------------------------------------------------------------
     signal clk_signal               : std_logic;
     signal reset_signal             : std_logic;
+    signal ALU_code                 : std_logic_vector(3 downto 0);
    
 begin
 -------------- Instruction Bit Slicing ----------------------------------------------------------------------
@@ -147,7 +155,9 @@ begin
     rs2_a_signal  <= current_inst_signal_2(24 downto 20); -- ID
     funct7_signal <= current_inst_signal_2(31 downto 25); -- ID    
 -------------- Instruction Bit Slicing ----------------------------------------------------------------------
-    flush_signal <= Branch_taken_signal or jump_signal;
+    
+    clk_signal   <= clk;
+    reset_signal <= reset;
 
 alu_inst: entity work.alu
     port map(
@@ -161,12 +171,12 @@ alu_control_inst: entity work.alu_control
        ALU_Op      => ALU_Op_2,
        funct3      => funct3_signal_2,
        funct7      => funct7_signal_2,
-       Opcode      => opcode_signal_2
+       ALU_code    => ALU_control_signal
     );
 comparator_inst: entity work.comparator
     port map(
-        rs1     => rs1_signal_2,
-        rs2     => rs2_signal_2,
+        rs1     => muxA_signal,
+        rs2     => muxB_signal,
         funct3  => funct3_signal_2,
         taken   => Branch_taken_signal
 -- will be taken care later
@@ -189,7 +199,16 @@ control_Signals_inst: entity work.control_signals
         ALU_Src_and     => ALU_Src_signal_and,
         ALU_Src2_and    => ALU_Src2_signal_and,
         mem_to_reg_and  => mem_to_reg_and,
-        ALU_Op_and      => ALU_Op_and              
+        ALU_Op_and      => ALU_Op_and,  
+        Jump            => Jump_signal,
+        Branch          => Branch_Signal,
+        Adder_Src       => Adder_Src_signal,
+        Adder_Src_and   => Adder_Src_signal_and,
+        Jump_and        => Jump_signal_and, 
+        Branch_and      => Branch_Signal_and
+        
+        
+                    
 
     );
 control_unit_inst: entity work.control_unit
@@ -211,11 +230,11 @@ control_unit_inst: entity work.control_unit
 data_memory_inst: entity work.data_memory
     port map(
         clk             => clk_signal, 
-        reset           => reset_signal,
+--      reset           => reset_signal,
         mem_read        => Mem_Read_signal_3,
         mem_write       => Mem_Write_signal_3,
         address         => ALU_Result_signal_2,
-        data_in         => rs2_signal_3,
+        data_in         => muxB_signal_2,
         data_out        => read_data_signal
 
     );
@@ -229,31 +248,31 @@ ex_mem_reg_inst: entity work.ex_mem_reg
         reset           => reset_signal,
         rd              => rd_signal_2,
         ALU_Result      => ALU_Result_signal,
-        rs2_for         => rs2_signal_2,
+        rs2_for         => muxB_signal,
         imm             => imm_signal_2,
         inst0           => inst0_signal_3,
         --------------------------------------------
         mem_write_mem   => Mem_Write_signal_3,
-        mem_read_mem    => Mem_Write_signal_3,
-        reg_write_mem   => Mem_Write_signal_3,
+        mem_read_mem    => Mem_Read_signal_3,
+        reg_write_mem   => Reg_Write_signal_3,
         mem_to_reg_mem  => mem_to_reg_3,
         rd_mem          => rd_signal_3,
         ALU_Result_mem  => ALU_Result_signal_2,
-        rs2_for_mem     => rs2_signal_3,
-        imm_mem         => imm_signal_2,
-        inst0_mem       => inst0_signal_3                      
+        rs2_for_mem     => muxB_signal_2,
+        imm_mem         => imm_signal_3,    
+        inst0_mem       => inst0_signal_4                      
 
     );
 forwarding_mux_inst: entity work.forwarding_mux
     port map(
         rs1             => rs1_signal_2,
         rs2             => rs2_signal_2,
-        write_data      => read_data_signal_2,
+        write_data      => write_register_signal,
         ALU_Result      => ALU_Result_signal_2,
         for_a           => for_a_signal,
         for_b           => for_b_signal,
         mux_a           => muxA_signal,
-        mux_b           => muxA_signal
+        mux_b           => muxB_signal
 
     );
 forwarding_unit_inst: entity work.forwarding_unit
@@ -270,8 +289,8 @@ forwarding_unit_inst: entity work.forwarding_unit
     );
 hazard_detection_unit_inst: entity work.hazard_detection_unit
     port map(
-        rs1             => rs1_signal,
-        rs2             => rs1_signal,
+        rs1             => rs1_a_signal,
+        rs2             => rs2_a_signal,
         rd_ex           => rd_signal_2,
         mem_read_ex     => Mem_Read_signal_2,
         stall           => stall_signal
@@ -297,6 +316,11 @@ id_ex_reg_inst: entity work.id_ex_reg
         clk             => clk_signal,
         reset           => reset_signal,
         inst0           => inst0_signal_2,
+        current_pc      => current_pc_signal_2,
+        Jump            => Jump_signal_and,
+        Adder_Src       => Adder_Src_signal_and,
+        Branch          => Branch_signal_and,
+        flush           => flush_signal,
         ---------------------------------------
         rs1_ex          => rs1_signal_2,
         rs2_ex          => rs2_signal_2,
@@ -308,13 +332,16 @@ id_ex_reg_inst: entity work.id_ex_reg
         ALU_Src2_ex     => ALU_Src2_signal_2,
         reg_Write_ex    => Reg_Write_signal_2,
         mem_read_ex     => Mem_Read_signal_2,
-        mem_Write_ex    => Reg_Write_signal_2,
+        mem_Write_ex    => Mem_Write_signal_2,
         mem_to_reg_ex   => mem_to_reg_2,
         ALU_Op_ex       => ALU_Op_2,
         funct3_ex       => funct3_signal_2,
         funct7_ex       => funct7_signal_2,
-        inst0_ex        => inst0_signal_3
-
+        inst0_ex        => inst0_signal_3,
+        current_pc_ex   => current_pc_signal_3,
+        Jump_ex         => Jump_signal_2,
+        Adder_Src_ex    => Adder_Src_signal_2,
+        Branch_ex       => Branch_signal_2        
     );
 if_id_reg_inst: entity work.if_id_reg
     port map(
@@ -333,16 +360,16 @@ mem_wb_reg_inst: entity work.mem_wb_reg
     port map(
         ALU_Result      => ALU_Result_signal_2,
         read_data       => read_data_signal,
-        imm             => imm_signal_2,
+        imm             => imm_signal_3,
         inst0           => inst0_signal_4,
         rd              => rd_signal_3,
         mem_to_reg      => mem_to_reg_3,
-        reg_write       => Mem_Write_signal_3,
+        reg_write       => Reg_Write_signal_3,
         clk             => clk_signal,
         reset           => reset_signal,
         ALU_Res         => ALU_Result_signal_3,
         read_Data_wb    => read_data_signal_2,
-        imm_wb          => imm_signal_3,
+        imm_wb          => imm_signal_4,
         inst0_wb        => inst0_signal_5,
         rd_wb           => rd_signal_4,
         mem_to_reg_wb   => mem_to_reg_4,
@@ -357,8 +384,7 @@ imm_gen_inst: entity work.imm_gen
     );
 inst_mem_inst: entity work.inst_mem
     port map(
-       clk              => clk_signal,
-       reset            => reset_signal,
+--     reset            => reset_signal,
        current_inst     => current_pc_signal,
        next_inst        => current_inst_signal
           
@@ -377,16 +403,16 @@ operand_mux_inst: entity work.operand_mux
     );
 pc_adder_inst: entity work.pc_adder
     port map(
-        current_pc      => current_inst_signal,
-        next_pc         => pc_adder_signal
+        current_pc      => current_pc_signal,
+        next_pc         => inst0_signal
         
     );
 pc_mux_inst: entity work.pc_mux
     port map(
-       pc               => pc_adder_signal,
+       pc               => inst0_signal,
        new_target       => new_target_signal,
-       jump             => jump_signal,
-       branch           => branch_signal,
+       jump             => jump_signal_2,
+       branch           => branch_signal_2,
        branch_taken     => Branch_taken_signal,
        next_pc          => pc_mux_signal,
        flush            => flush_signal       
@@ -416,10 +442,10 @@ register_file_inst: entity work.register_file
     );
 target_adder_inst: entity work.target_adder
     port map(
-       imm              => imm_signal,
-       pc               => current_pc_signal_2,
-       rs1              => rs1_signal,
-       Adder_Src        => Adder_Src_signal,
+       imm              => imm_signal_2,
+       pc               => current_pc_signal_3,
+       rs1              => muxA_signal,
+       Adder_Src        => Adder_Src_signal_2,
        new_target       => new_target_signal
        
     );
@@ -433,5 +459,8 @@ wb_mux_inst: entity work.wb_mux
        wb_out           => write_register_signal
     
     );
+    
+ALU_Result <= ALU_Result_signal_3;  
+PC_out     <= current_pc_signal;
   
 end Behavioral;
